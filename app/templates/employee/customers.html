@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Directory — SmartBank Staff{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Customer Management Directory</h3>
+      <span class="text-muted small">Search and inspect customer records, accounts, and loan portfolios</span>
+    </div>
+  </div>
+
+  <!-- Search Card -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="GET" action="/employee/customers" class="row g-2">
+        <div class="col-md-10">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" name="search" class="form-control" placeholder="Search by customer name, phone, or account number (e.g. SB10023456)..." value="{{ search_term or '' }}">
+          </div>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-fill">Search</button>
+          <a href="/employee/customers" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customers Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Full Name</th>
+              <th>Contact Details</th>
+              <th>Accounts Linked</th>
+              <th>Created On</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in customers %}
+              <tr>
+                <td class="fw-bold text-muted">#{{ c.id }}</td>
+                <td>
+                  <div class="fw-bold">{{ c.full_name }}</div>
+                  <div class="small text-muted">{{ c.user.username }} ({{ c.user.email }})</div>
+                </td>
+                <td class="small">
+                  <div><i class="bi bi-telephone me-1"></i> {{ c.phone }}</div>
+                  <div class="text-muted text-truncate" style="max-width: 250px;"><i class="bi bi-geo-alt me-1"></i> {{ c.address }}</div>
+                </td>
+                <td>
+                  {% for acc in c.accounts %}
+                    <span class="badge bg-primary-subtle text-primary font-monospace me-1">
+                      {{ acc.account_number }} ({{ acc.status }})
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">None</span>
+                  {% endfor %}
+                </td>
+                <td class="small text-muted">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-end">
+                  <a href="/employee/customers/{{ c.id }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i> Manage
+                  </a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                  No customers found matching criteria.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

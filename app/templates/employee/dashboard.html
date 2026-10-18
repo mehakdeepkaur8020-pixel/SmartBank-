@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Dashboard — SmartBank Operations{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-emerald me-2"></i> Employee Operations Dashboard</h2>
+        <span class="text-light opacity-75 small">KYC verification, loan underwriting, compliance monitoring, and institutional clearing</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/employee/applications" class="btn btn-warning btn-sm text-dark fw-bold position-relative">
+          <i class="bi bi-file-earmark-person me-1"></i> KYC Applications
+          {% if pending_apps_count > 0 %}
+            <span class="badge bg-danger rounded-pill ms-1">{{ pending_apps_count }}</span>
+          {% endif %}
+        </a>
+        <a href="/employee/reports" class="btn btn-emerald btn-sm">
+          <i class="bi bi-graph-up-arrow me-1"></i> Institutional Reports
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Operational Metric Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card gold h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">KYC Applications</div>
+            <div class="metric-value my-1 text-warning">{{ pending_apps_count }}</div>
+            <a href="/employee/applications?status=PENDING_REVIEW" class="small text-decoration-none">Review queue &raquo;</a>
+          </div>
+          <div class="metric-icon-box gold">
+            <i class="bi bi-file-earmark-person"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card emerald h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Active Accounts</div>
+            <div class="metric-value my-1 text-success">{{ active_accounts }}</div>
+            <span class="small text-muted">Core operational</span>
+          </div>
+          <div class="metric-icon-box emerald">
+            <i class="bi bi-wallet2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card navy h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Pending Loans</div>
+            <div class="metric-value my-1 text-primary">{{ pending_loans_count }}</div>
+            <a href="/employee/loans?status=PENDING" class="small text-decoration-none">Underwriting &raquo;</a>
+          </div>
+          <div class="metric-icon-box navy">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card danger h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Flagged Reviews</div>
+            <div class="metric-value my-1 text-danger">{{ flagged_reviews_count }}</div>
+            <a href="/employee/monitoring" class="small text-decoration-none">Compliance &raquo;</a>
+          </div>
+          <div class="metric-icon-box navy">
+            <i class="bi bi-shield-exclamation text-danger"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending KYC Applications Queue Banner if any -->
+  {% if pending_apps %}
+    <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <span class="fw-bold text-dark"><i class="bi bi-patch-check text-warning me-2"></i> Pending Account Opening KYC Dossiers</span>
+        <a href="/employee/applications" class="btn btn-sm btn-link text-decoration-none">Open Full Queue &raquo;</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-smartbank table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Applicant</th>
+                <th>Type</th>
+                <th>Opening Deposit</th>
+                <th>Video KYC</th>
+                <th>Submitted</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in pending_apps %}
+                <tr>
+                  <td class="font-monospace fw-bold">{{ a.application_reference }}</td>
+                  <td>{{ a.customer.full_name }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ a.account_type }}</span></td>
+                  <td class="fw-bold text-success">{{ cents_to_currency(a.initial_deposit_cents) }}</td>
+                  <td>
+                    {% if a.video_verification_status == 'COMPLETED' %}
+                      <span class="badge bg-success bg-opacity-25 text-success border border-success">Verified</span>
+                    {% else %}
+                      <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td class="text-end">
+                    <a href="/employee/applications/{{ a.id }}" class="btn btn-outline-primary btn-sm px-3">
+                      Inspect & Review
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Pending Loans & Flagged Transactions Grid -->
+  <div class="row g-4 mb-4">
+    <!-- Pending Loans -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <span class="fw-bold text-dark"><i class="bi bi-piggy-bank text-warning me-2"></i> Pending Loan Underwriting</span>
+          <a href="/employee/loans" class="btn btn-sm btn-link text-decoration-none">All Loans &raquo;</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Customer</th>
+                  <th>Category</th>
+                  <th>Amount (INR)</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for l in pending_loans %}
+                  <tr>
+                    <td class="font-monospace small fw-bold">{{ l.loan_reference }}</td>
+                    <td class="small">{{ l.customer.full_name if l.customer else 'N/A' }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ l.category }}</span></td>
+                    <td class="fw-bold text-dark">{{ cents_to_currency(l.amount_cents) }}</td>
+                    <td class="text-end">
+                      <a href="/employee/loans" class="btn btn-navy btn-sm py-1 px-2">Review</a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">No pending loans in queue.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flagged Transactions -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <span class="fw-bold text-dark"><i class="bi bi-shield-exclamation text-danger me-2"></i> Flagged Large Transactions (> ₹5 Lakhs)</span>
+          <a href="/employee/monitoring" class="btn btn-sm btn-link text-decoration-none">Review Queue &raquo;</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Reason</th>
+                  <th>Amount (INR)</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in flagged_reviews %}
+                  <tr>
+                    <td class="font-monospace small fw-bold">{{ r.transaction.transaction_reference if r.transaction else 'N/A' }}</td>
+                    <td class="small text-truncate" style="max-width: 170px;">{{ r.flag_reason }}</td>
+                    <td class="fw-bold text-dark">{{ cents_to_currency(r.transaction.amount_cents) if r.transaction else '-' }}</td>
+                    <td class="text-end">
+                      <a href="/employee/monitoring" class="btn btn-outline-danger btn-sm py-1 px-2">Resolve</a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No pending monitoring alerts.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

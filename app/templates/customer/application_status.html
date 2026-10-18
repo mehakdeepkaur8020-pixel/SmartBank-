@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Application Status — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-hourglass-split text-warning me-2"></i> Account Opening Application Status</h2>
+        <p class="text-light opacity-75 small mb-0">Track the verification and review progress of your SmartBank accounts</p>
+      </div>
+      <div>
+        <a href="/customer/apply-account" class="btn btn-emerald btn-sm">
+          <i class="bi bi-plus-circle me-1"></i> New Application
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  {% if applications %}
+    <div class="row g-4">
+      {% for app in applications %}
+        <div class="col-12">
+          <div class="card shadow-sm border p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom pb-3 mb-3">
+              <div>
+                <span class="badge bg-light text-dark border me-2">{{ app.application_reference }}</span>
+                <span class="h5 fw-bold text-dark mb-0">{{ app.account_type }} Account</span>
+                <span class="text-muted small ms-2">Branch: {{ app.branch_code }}</span>
+              </div>
+              <div>
+                {% if app.status == 'PENDING_REVIEW' %}
+                  <span class="badge bg-warning bg-opacity-25 text-warning border border-warning px-3 py-2 fs-6">
+                    <i class="bi bi-hourglass-split me-1"></i> Pending Verification
+                  </span>
+                {% elif app.status == 'UNDER_REVIEW' %}
+                  <span class="badge bg-info bg-opacity-25 text-info border border-info px-3 py-2 fs-6">
+                    <i class="bi bi-eye me-1"></i> Under Operational Review
+                  </span>
+                {% elif app.status == 'APPROVED' %}
+                  <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2 fs-6">
+                    <i class="bi bi-check-circle-fill me-1"></i> Approved & Active
+                  </span>
+                {% elif app.status == 'REJECTED' %}
+                  <span class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2 fs-6">
+                    <i class="bi bi-x-circle-fill me-1"></i> Application Rejected
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-3 col-6">
+                <div class="small text-muted">Submitted Date</div>
+                <div class="fw-semibold text-dark">{{ app.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="small text-muted">Requested Opening Deposit</div>
+                <div class="fw-semibold text-success">{{ (app.initial_deposit_cents / 100)|round(2) }} (₹ INR)</div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="small text-muted">Video KYC Status</div>
+                <div class="fw-semibold text-dark">
+                  {% if app.video_verification_status == 'COMPLETED' %}
+                    <span class="text-success"><i class="bi bi-patch-check-fill me-1"></i> Completed</span>
+                  {% else %}
+                    <span class="text-warning"><i class="bi bi-clock me-1"></i> Pending</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="small text-muted">Generated Account</div>
+                <div class="fw-bold text-primary font-monospace">
+                  {% if app.created_account %}
+                    {{ app.created_account.account_number }}
+                  {% else %}
+                    <span class="text-muted fw-normal">Pending Approval</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Documents attached -->
+            {% if app.documents %}
+              <div class="p-3 bg-light rounded mb-3">
+                <div class="small fw-bold text-secondary mb-2"><i class="bi bi-paperclip me-1"></i> Submitted KYC Documents:</div>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for doc in app.documents %}
+                    <span class="badge bg-white text-dark border px-3 py-2">
+                      <i class="bi bi-file-earmark-check text-success me-1"></i>
+                      {{ doc.document_type }}: {{ doc.original_filename }} ({{ doc.document_number or 'Verified' }})
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Review Notes & Status timeline -->
+            {% if app.review_decision_notes %}
+              <div class="alert {% if app.status == 'APPROVED' %}alert-success{% elif app.status == 'REJECTED' %}alert-danger{% else %}alert-info{% endif %} py-2 px-3 small mb-0">
+                <strong>Reviewer Feedback:</strong> {{ app.review_decision_notes }}
+                {% if app.reviewed_at %}
+                  <span class="text-muted ms-2">({{ app.reviewed_at.strftime('%Y-%m-%d %H:%M') }})</span>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            {% if app.status == 'APPROVED' and app.created_account %}
+              <div class="mt-3 text-end">
+                <a href="/customer/accounts" class="btn btn-emerald btn-sm">
+                  <i class="bi bi-wallet2 me-1"></i> View Verified Account
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card p-5 text-center shadow-sm border-0">
+      <div class="mb-3 text-muted">
+        <i class="bi bi-file-earmark-text fs-1"></i>
+      </div>
+      <h5 class="fw-bold text-dark">No Account Applications on File</h5>
+      <p class="text-muted small mx-auto" style="max-width: 450px;">
+        You haven't submitted any account opening applications yet. You can apply for a high-yield Savings or Current account with instant digital KYC.
+      </p>
+      <div>
+        <a href="/customer/apply-account" class="btn btn-emerald px-4">
+          <i class="bi bi-patch-check me-1"></i> Open New Account
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

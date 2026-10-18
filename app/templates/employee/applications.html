@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}KYC Account Applications — Staff Operations{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-person-fill text-emerald me-2"></i> Account Opening Applications Queue</h2>
+        <p class="text-light opacity-75 small mb-0">Review submitted KYC documents, digital signatures, and video verification sessions</p>
+      </div>
+      <div>
+        <a href="/employee/dashboard" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Filter tabs -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="/employee/applications" class="btn btn-sm {% if not filter_status %}btn-navy{% else %}btn-outline-secondary{% endif %}">
+      All Applications
+    </a>
+    <a href="/employee/applications?status=PENDING_REVIEW" class="btn btn-sm {% if filter_status == 'PENDING_REVIEW' %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
+      Pending Review
+    </a>
+    <a href="/employee/applications?status=APPROVED" class="btn btn-sm {% if filter_status == 'APPROVED' %}btn-success fw-bold{% else %}btn-outline-secondary{% endif %}">
+      Approved
+    </a>
+    <a href="/employee/applications?status=REJECTED" class="btn btn-sm {% if filter_status == 'REJECTED' %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">
+      Rejected
+    </a>
+  </div>
+
+  <div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card-body p-0">
+      {% if applications %}
+        <div class="table-responsive">
+          <table class="table table-smartbank table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Applicant Name</th>
+                <th>Type</th>
+                <th>Opening Deposit (INR)</th>
+                <th>Video KYC</th>
+                <th>Docs</th>
+                <th>Submitted Date</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+                <tr>
+                  <td>
+                    <span class="font-monospace fw-bold text-dark">{{ app.application_reference }}</span>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ app.customer.full_name }}</div>
+                    <div class="small text-muted">{{ app.customer.phone }}</div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border">{{ app.account_type }}</span>
+                  </td>
+                  <td>
+                    <span class="fw-semibold text-success">₹{{ "{:,.2f}".format(app.initial_deposit_cents / 100) }}</span>
+                  </td>
+                  <td>
+                    {% if app.video_verification_status == 'COMPLETED' %}
+                      <span class="badge bg-success bg-opacity-25 text-success border border-success">
+                        <i class="bi bi-camera-video-fill me-1"></i> Verified
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning bg-opacity-25 text-warning border border-warning">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-secondary border">
+                      <i class="bi bi-paperclip me-1"></i> {{ app.documents|length }} files
+                    </span>
+                  </td>
+                  <td class="small text-muted">{{ app.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>
+                    {% if app.status == 'PENDING_REVIEW' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif app.status == 'APPROVED' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% elif app.status == 'REJECTED' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ app.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="/employee/applications/{{ app.id }}" class="btn btn-outline-primary btn-sm px-3">
+                      <i class="bi bi-eye me-1"></i> Inspect & Review
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          <h6>No applications found in this queue</h6>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

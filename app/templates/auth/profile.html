@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile & Security — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- Profile Info -->
+    <div class="col-md-6">
+      <div class="card shadow-sm p-4 h-100">
+        <h4 class="fw-bold mb-3"><i class="bi bi-person-bounding-box text-primary me-2"></i> Account Profile</h4>
+        <div class="list-group list-group-flush mb-4">
+          <div class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Username:</span>
+            <span class="fw-semibold">{{ current_user.username }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Email:</span>
+            <span class="fw-semibold">{{ current_user.email }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Role:</span>
+            <span class="badge bg-primary text-uppercase">{{ current_user.role }}</span>
+          </div>
+          {% if customer %}
+            <div class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Full Name:</span>
+              <span class="fw-semibold">{{ customer.full_name }}</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Phone:</span>
+              <span class="fw-semibold">{{ customer.phone }}</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Address:</span>
+              <span class="fw-semibold">{{ customer.address }}</span>
+            </div>
+          {% endif %}
+          <div class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Registered On:</span>
+            <span>{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Change -->
+    <div class="col-md-6">
+      <div class="card shadow-sm p-4 h-100">
+        <h4 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill text-danger me-2"></i> Change Password</h4>
+        <p class="text-muted small mb-4">Ensure your account uses a strong password with at least 8 characters.</p>
+
+        <form action="/auth/change-password" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Current Password</label>
+            <input type="password" name="old_password" class="form-control" required placeholder="Enter current password">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">New Password</label>
+            <input type="password" name="new_password" class="form-control" required minlength="8" placeholder="Enter new password">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Confirm New Password</label>
+            <input type="password" name="confirm_new_password" class="form-control" required minlength="8" placeholder="Confirm new password">
+          </div>
+
+          <button type="submit" class="btn btn-danger w-100 fw-semibold">
+            <i class="bi bi-key-fill me-1"></i> Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

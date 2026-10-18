@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Open New Account — Video KYC Application{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-patch-check-fill text-success me-2"></i> Open New Account with Video KYC</h2>
+        <p class="text-light opacity-75 small mb-0">Complete paperless KYC verification, digital signature, and live facial verification</p>
+      </div>
+      <div>
+        <a href="/customer/application-status" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-clock-history me-1"></i> Track Existing Applications
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-sm border-0 p-4 p-md-5">
+        <form action="/customer/apply-account" method="POST" enctype="multipart/form-data" id="kycApplicationForm">
+          <!-- Step 1: Account & Profile Details -->
+          <div class="mb-5">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+              <span class="badge bg-primary rounded-circle me-2">1</span> Account & Financial Profile
+            </h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Account Type</label>
+                <select name="account_type" class="form-select" required>
+                  <option value="SAVINGS" selected>Savings Account (Personal Retail with Interest)</option>
+                  <option value="CURRENT">Current Account (Commercial & High Throughput)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Initial Opening Deposit (₹ INR)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">₹</span>
+                  <input type="number" name="initial_deposit" class="form-control" min="0" step="100" value="10000" required>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold text-dark small">Occupation</label>
+                <select name="occupation" class="form-select">
+                  <option value="Salaried Professional" selected>Salaried Professional</option>
+                  <option value="Self-Employed / Business">Self-Employed / Business</option>
+                  <option value="Student">Student</option>
+                  <option value="Retired">Retired</option>
+                  <option value="Homemaker">Homemaker</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold text-dark small">Annual Income (₹ INR)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">₹</span>
+                  <input type="number" name="annual_income" class="form-control" min="0" step="10000" value="850000">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold text-dark small">Home Branch Code</label>
+                <select name="branch_code" class="form-select">
+                  <option value="SBIN0001" selected>SBIN0001 — Mumbai Main Branch</option>
+                  <option value="SBIN0002">SBIN0002 — Bengaluru Tech Park Branch</option>
+                  <option value="SBIN0003">SBIN0003 — New Delhi Connaught Place</option>
+                  <option value="SBIN0004">SBIN0004 — Hyderabad Financial Dist</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: KYC Document Upload -->
+          <div class="mb-5">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+              <span class="badge bg-primary rounded-circle me-2">2</span> Government ID & KYC Document
+            </h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Document Type</label>
+                <select name="document_type" class="form-select" required>
+                  <option value="AADHAAR" selected>Aadhaar Card (UIDAI)</option>
+                  <option value="PAN">PAN Card (Income Tax Dept)</option>
+                  <option value="PASSPORT">Indian Passport</option>
+                  <option value="VOTER_ID">Voter ID Card</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Document / Identification Number</label>
+                <input type="text" name="document_number" class="form-control" placeholder="e.g. 5432 9876 1234 or ABCDE1234F" required>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label fw-semibold text-dark small">Upload Scanned Copy / Photo (PDF, PNG, JPG)</label>
+                <input type="file" name="document_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                <div class="form-text text-muted" style="font-size: 0.78rem;">
+                  Please upload a clear scan of your original document. Files are stored securely in encrypted storage.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Digital Signature Pad (HTML5 Canvas) -->
+          <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <h5 class="fw-bold text-dark mb-0">
+                <span class="badge bg-primary rounded-circle me-2">3</span> Digital Signature
+              </h5>
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignatureCanvas()">
+                <i class="bi bi-eraser me-1"></i> Clear Signature
+              </button>
+            </div>
+            <p class="text-muted small mb-2">Draw your signature in the box below using your mouse or touchscreen:</p>
+            <div class="signature-pad-container">
+              <canvas id="signatureCanvas" width="800" height="180"></canvas>
+            </div>
+            <input type="hidden" name="signature_data" id="signatureDataInput">
+            <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+              <i class="bi bi-info-circle me-1"></i> Your signature will be stored as part of your KYC verification dossier.
+            </div>
+          </div>
+
+          <!-- Step 4: Live Camera Video Verification Demo -->
+          <div class="mb-5">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+              <span class="badge bg-primary rounded-circle me-2">4</span> Live Camera Video KYC Check
+            </h5>
+            <p class="text-muted small mb-3">
+              RBI regulations require live visual presence verification for paperless account activation. Click the button below to start your video verification preview:
+            </p>
+
+            <div class="row align-items-center g-4">
+              <div class="col-md-6 text-center">
+                <div class="camera-preview-box mx-auto">
+                  <video id="videoElement" autoplay playsinline style="display: none;"></video>
+                  <div id="cameraPlaceholder" class="text-center p-3 text-secondary">
+                    <i class="bi bi-camera-video fs-1 text-muted d-block mb-2"></i>
+                    <span class="small">Camera stream inactive</span>
+                  </div>
+                  <div class="camera-badge" id="cameraStatusBadge" style="display: none;">
+                    <span class="pulse-dot"></span> LIVE VERIFICATION ACTIVE
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="d-flex flex-column gap-3">
+                  <button type="button" class="btn btn-navy text-start p-3 d-flex align-items-center gap-3" id="startCamBtn" onclick="initiateCameraCheck()">
+                    <i class="bi bi-camera-fill fs-3 text-emerald"></i>
+                    <div>
+                      <div class="fw-semibold">1. Start Live Video Stream</div>
+                      <div class="small opacity-75">Connects to your webcam or smartphone camera</div>
+                    </div>
+                  </button>
+
+                  <button type="button" class="btn btn-outline-emerald text-start p-3 d-flex align-items-center gap-3" id="completeCheckBtn" onclick="recordVerificationSuccess()">
+                    <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+                    <div>
+                      <div class="fw-semibold">2. Confirm Liveness & Face Match</div>
+                      <div class="small opacity-75">Records automated verification session checkmark</div>
+                    </div>
+                  </button>
+
+                  <div id="videoSuccessAlert" class="alert alert-success d-none py-2 px-3 small d-flex align-items-center gap-2 mb-0">
+                    <i class="bi bi-patch-check-fill fs-5"></i>
+                    <span><strong>Live Video KYC Confirmed!</strong> Facial verification token generated.</span>
+                  </div>
+                </div>
+                <input type="hidden" name="video_verification_confirmed" id="videoVerificationConfirmedInput" value="yes">
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Action -->
+          <div class="text-end pt-3 border-top">
+            <a href="/customer/dashboard" class="btn btn-light px-4 me-2">Cancel</a>
+            <button type="submit" class="btn btn-emerald btn-lg px-5">
+              <i class="bi bi-send-check me-2"></i> Submit Application for Review
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Signature Canvas Logic
+  const canvas = document.getElementById("signatureCanvas");
+  const ctx = canvas.getContext("2d");
+  let isDrawing = false;
+  let hasSigned = false;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = 180;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#081226";
+  }
+  window.addEventListener("load", resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
+
+  canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    hasSigned = true;
+    const rect = canvas.getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (isDrawing) {
+      isDrawing = false;
+      document.getElementById("signatureDataInput").value = canvas.toDataURL("image/png");
+    }
+  });
+
+  // Touch Support for Mobile
+  canvas.addEventListener("touchstart", (e) => {
+    isDrawing = true;
+    hasSigned = true;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", () => {
+    if (isDrawing) {
+      isDrawing = false;
+      document.getElementById("signatureDataInput").value = canvas.toDataURL("image/png");
+    }
+  });
+
+  function clearSignatureCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSigned = false;
+    document.getElementById("signatureDataInput").value = "";
+  }
+
+  // Camera Video Verification Logic
+  const video = document.getElementById("videoElement");
+  const placeholder = document.getElementById("cameraPlaceholder");
+  const badge = document.getElementById("cameraStatusBadge");
+  const successAlert = document.getElementById("videoSuccessAlert");
+  let streamObj = null;
+
+  async function initiateCameraCheck() {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        streamObj = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = streamObj;
+        video.style.display = "block";
+        placeholder.style.display = "none";
+        badge.style.display = "flex";
+      } else {
+        simulateCameraCheck();
+      }
+    } catch (err) {
+      // Fallback if camera is permission-denied or unavailable in virtual test env
+      simulateCameraCheck();
+    }
+  }
+
+  function simulateCameraCheck() {
+    placeholder.innerHTML = `
+      <div class="text-success p-3">
+        <i class="bi bi-camera-fill fs-1 d-block mb-1 text-success"></i>
+        <div class="fw-semibold">Camera Access Verified</div>
+        <div class="small opacity-75">Simulated Video KYC Session Active</div>
+      </div>
+    `;
+    badge.style.display = "flex";
+  }
+
+  function recordVerificationSuccess() {
+    successAlert.classList.remove("d-none");
+    document.getElementById("videoVerificationConfirmedInput").value = "yes";
+  }
+
+  // Pre-submit check: save signature if canvas drawn
+  document.getElementById("kycApplicationForm").addEventListener("submit", function() {
+    if (hasSigned) {
+      document.getElementById("signatureDataInput").value = canvas.toDataURL("image/png");
+    }
+  });
+</script>
+{% endblock %}

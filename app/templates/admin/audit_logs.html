@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail — SmartBank Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">System Security Audit Trail</h3>
+      <span class="text-muted small">Tamper-evident logs of logins, transfers, loan decisions, and operational updates</span>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="GET" action="/admin/audit-logs" class="row g-2 align-items-center">
+        <div class="col-md-9">
+          <input type="text" name="action" class="form-control form-control-sm" placeholder="Filter by action (e.g. TRANSFER, LOGIN_SUCCESS, LOAN_APPROVED, ACCOUNT_STATUS_CHANGE)..." value="{{ filter_action or '' }}">
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm flex-fill">Filter Logs</button>
+          <a href="/admin/audit-logs" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg"></i></a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Timestamp (UTC)</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Details</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in logs %}
+              <tr>
+                <td class="text-muted small">#{{ l.id }}</td>
+                <td class="small font-monospace">{{ l.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td class="small">
+                  {% if l.user %}{{ l.user.username }} ({{ l.user.role }}){% else %}<span class="text-muted">System/Anonymous</span>{% endif %}
+                </td>
+                <td><span class="badge bg-dark text-white">{{ l.action }}</span></td>
+                <td class="small">{{ l.entity_type or '-' }} #{{ l.entity_id or '' }}</td>
+                <td class="small">{{ l.details }}</td>
+                <td class="small font-monospace text-muted">{{ l.ip_address or 'Local' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">No audit logs matching query.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

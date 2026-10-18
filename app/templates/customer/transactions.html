@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-clock-history text-emerald me-2"></i> Account Transaction Ledger</h2>
+        <span class="text-light opacity-75 small">Comprehensive historical record of deposits, withdrawals, and transfers in INR (₹)</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/reports/statement" class="btn btn-emerald btn-sm">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF Statement
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Filter Form -->
+  <div class="card shadow-sm border-0 mb-4 p-4">
+    <form method="GET" action="/customer/transactions" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-dark">Filter Account</label>
+        <select name="account_id" class="form-select">
+          <option value="">All Accounts</option>
+          {% for acc in accounts %}
+            <option value="{{ acc.id }}" {% if selected_account_id == acc.id %}selected{% endif %}>
+              {{ acc.account_number }} ({{ acc.account_type }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-dark">Transaction Type</label>
+        <select name="txn_type" class="form-select">
+          <option value="">All Types</option>
+          <option value="DEPOSIT" {% if selected_type == 'DEPOSIT' %}selected{% endif %}>Deposits</option>
+          <option value="WITHDRAWAL" {% if selected_type == 'WITHDRAWAL' %}selected{% endif %}>Withdrawals</option>
+          <option value="TRANSFER" {% if selected_type == 'TRANSFER' %}selected{% endif %}>Transfers</option>
+          <option value="REVERSAL" {% if selected_type == 'REVERSAL' %}selected{% endif %}>Reversals</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-dark">Start Date</label>
+        <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-dark">End Date</label>
+        <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-navy flex-fill"><i class="bi bi-funnel me-1"></i> Filter</button>
+        <a href="/customer/transactions" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-smartbank table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Reference</th>
+              <th>Type</th>
+              <th>Source &bull; Recipient</th>
+              <th>Description</th>
+              <th>Amount (INR)</th>
+              <th>Balance Snapshot</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+              <tr>
+                <td class="small text-muted">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="font-monospace small fw-bold text-dark">{{ t.transaction_reference }}</td>
+                <td>
+                  <span class="badge {% if t.transaction_type == 'DEPOSIT' %}bg-success{% elif t.transaction_type == 'WITHDRAWAL' %}bg-danger{% elif t.transaction_type == 'REVERSAL' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                    {{ t.transaction_type }}
+                  </span>
+                </td>
+                <td class="small font-monospace">
+                  {% if t.source_account %}{{ t.source_account.account_number }}{% else %}<span class="text-muted">Ext Credit</span>{% endif %}
+                  &rarr;
+                  {% if t.destination_account %}{{ t.destination_account.account_number }}{% else %}<span class="text-muted">Cash Debit</span>{% endif %}
+                </td>
+                <td class="small">{{ t.description }}</td>
+                <td class="fw-bold {% if t.transaction_type == 'DEPOSIT' %}text-success{% else %}text-dark{% endif %}">
+                  {{ cents_to_currency(t.amount_cents) }}
+                </td>
+                <td class="small text-muted">
+                  {{ cents_to_currency(t.balance_after_cents) if t.balance_after_cents is not None else '—' }}
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ t.status }}</span></td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                  <i class="bi bi-receipt fs-2 d-block mb-2"></i>
+                  No transactions match the selected filter criteria.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

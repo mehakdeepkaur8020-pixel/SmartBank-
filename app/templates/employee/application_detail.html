@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Application {{ application.application_reference }} — SmartBank Operations{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-light text-dark font-monospace">{{ application.application_reference }}</span>
+          <h2 class="fw-bold text-white mb-0">Application Review Dossier</h2>
+        </div>
+        <p class="text-light opacity-75 small mb-0">Applicant: {{ application.customer.full_name }} &bull; Submitted {{ application.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+      </div>
+      <div>
+        <a href="/employee/applications" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> Back to Applications
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4">
+    <!-- Left Column: Dossier Details -->
+    <div class="col-lg-8">
+      <!-- Profile & Financial Info -->
+      <div class="card shadow-sm border-0 mb-4 p-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-person-lines-fill text-primary me-2"></i> Applicant & Account Request
+        </h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="small text-muted">Full Legal Name</div>
+            <div class="fw-semibold text-dark">{{ application.customer.full_name }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Contact Phone & Email</div>
+            <div class="fw-semibold text-dark">{{ application.customer.phone }} &bull; {{ application.customer.user.email }}</div>
+          </div>
+          <div class="col-md-12">
+            <div class="small text-muted">Residential Address</div>
+            <div class="text-dark">{{ application.customer.address }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="small text-muted">Requested Account Type</div>
+            <span class="badge bg-light text-dark border px-2 py-1 fs-6">{{ application.account_type }}</span>
+          </div>
+          <div class="col-md-4">
+            <div class="small text-muted">Opening Deposit (INR)</div>
+            <div class="fw-bold text-success fs-6">₹{{ "{:,.2f}".format(application.initial_deposit_cents / 100) }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="small text-muted">Allocated Branch</div>
+            <div class="fw-semibold text-dark">{{ application.branch_code }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Occupation</div>
+            <div class="text-dark">{{ application.occupation or 'Professional' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Source of Funds</div>
+            <div class="text-dark">{{ application.source_of_funds or 'Salary / Business' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KYC Documents Attached -->
+      <div class="card shadow-sm border-0 mb-4 p-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-file-earmark-check-fill text-success me-2"></i> Verified Government Documents
+        </h5>
+        {% if application.documents %}
+          <div class="list-group list-group-flush">
+            {% for doc in application.documents %}
+              <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                <div>
+                  <div class="fw-semibold text-dark">
+                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i> {{ doc.document_type }}
+                  </div>
+                  <div class="small text-muted">
+                    ID Number: <strong>{{ doc.document_number or 'On File' }}</strong> &bull; {{ doc.original_filename }} ({{ (doc.file_size_bytes / 1024)|round(1) }} KB)
+                  </div>
+                </div>
+                <div>
+                  <a href="/employee/applications/documents/{{ doc.id }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Inspect File
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="p-3 bg-light rounded text-center text-muted small">
+            No uploaded file attachments on record.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Digital Signature & Video Verification Check -->
+      <div class="card shadow-sm border-0 p-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-pen-fill text-info me-2"></i> Verification Evidence
+        </h5>
+        <div class="row g-4 align-items-center">
+          <div class="col-md-6">
+            <div class="small text-muted mb-2">Digital Signature Specimen:</div>
+            {% if application.signature_image_path %}
+              <div class="p-3 border rounded bg-white text-center">
+                <img src="/{{ application.signature_image_path }}" alt="Digital Signature" class="img-fluid" style="max-height: 120px;">
+              </div>
+            {% else %}
+              <div class="p-3 bg-light rounded text-muted small text-center">
+                Digital signature captured on file
+              </div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted mb-2">Live Video KYC Check:</div>
+            <div class="p-3 border rounded bg-light">
+              {% if application.video_verification_status == 'COMPLETED' %}
+                <div class="text-success fw-bold d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-camera-video-fill fs-5"></i> Session Verified & Logged
+                </div>
+                <div class="small text-muted">{{ application.video_verification_notes or 'Live biometric liveness verified during application.' }}</div>
+              {% else %}
+                <div class="text-warning fw-bold d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-exclamation-circle-fill fs-5"></i> Pending Video Session
+                </div>
+                <div class="small text-muted">Customer has not completed live webcam check.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Staff Decision & Audit History -->
+    <div class="col-lg-4">
+      <!-- Staff Decision Box -->
+      <div class="card shadow-sm border-0 mb-4 p-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-clipboard-check text-emerald me-2"></i> Operational Decision
+        </h5>
+
+        {% if application.status in ['APPROVED', 'REJECTED'] %}
+          <div class="alert {% if application.status == 'APPROVED' %}alert-success{% else %}alert-danger{% endif %} mb-3">
+            <div class="fw-bold mb-1">Application Resolution: {{ application.status }}</div>
+            <div class="small mb-1">{{ application.review_decision_notes }}</div>
+            <div class="small text-muted">Reviewed by {{ application.reviewer.username if application.reviewer else 'Staff' }} on {{ application.reviewed_at.strftime('%Y-%m-%d %H:%M') if application.reviewed_at else '' }}</div>
+          </div>
+
+          {% if application.created_account %}
+            <div class="p-3 bg-light rounded">
+              <div class="small text-muted">Generated Indian Account:</div>
+              <div class="h5 fw-bold text-primary font-monospace mb-1">{{ application.created_account.account_number }}</div>
+              <div class="small text-success"><i class="bi bi-check-circle-fill me-1"></i> Active in Core Banking</div>
+            </div>
+          {% endif %}
+        {% else %}
+          <form action="/employee/applications/{{ application.id }}/review" method="POST">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark small">Resolution Decision</label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="decision" id="decApprove" value="APPROVED" checked>
+                  <label class="form-check-label fw-bold text-success" for="decApprove">
+                    <i class="bi bi-check-circle me-1"></i> Approve & Generate Account
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="decision" id="decReject" value="REJECTED">
+                  <label class="form-check-label fw-bold text-danger" for="decReject">
+                    <i class="bi bi-x-circle me-1"></i> Reject
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark small">Reviewer Operational Notes</label>
+              <textarea name="notes" class="form-control" rows="3" required placeholder="Verification notes: KYC documents validated, face liveness matched, approved for account opening.">All KYC documents verified against government records. Live video verification completed satisfactorily. Approved.</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-emerald w-100 py-2 fw-semibold">
+              <i class="bi bi-shield-check me-1"></i> Commit Operational Decision
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <!-- Audit History -->
+      <div class="card shadow-sm border-0 p-4">
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-clock-history me-1"></i> Dossier Audit Timeline
+        </h6>
+        <div class="timeline small">
+          {% for h in application.review_history %}
+            <div class="mb-3 pb-2 border-bottom">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-light text-dark border">{{ h.action }}</span>
+                <span class="text-muted" style="font-size: 0.72rem;">{{ h.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+              <div class="text-secondary">{{ h.notes }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}SmartBank — Modern Digital Banking Platform{% endblock %}
+
+{% block content %}
+<!-- Premium Midnight Navy Hero Section -->
+<div class="hero-navy-gradient py-5 border-bottom">
+  <div class="container py-lg-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">
+          <span class="badge rounded-pill" style="background: var(--emerald-primary); color: #fff;">New</span>
+          <span class="small text-white fw-semibold">Next-Gen Digital Banking with 24x7 AI Assistance</span>
+        </div>
+        <h1 class="display-4 fw-bold text-white lh-sm mb-3">
+          Smart, Secure, & Seamless Banking for India
+        </h1>
+        <p class="lead text-light opacity-75 mb-4" style="font-size: 1.15rem; line-height: 1.6;">
+          Experience effortless financial management. Open high-yield Savings and Current accounts with instant Video KYC, execute zero-fee transfers across Indian banks, obtain flexible loans, and enjoy automated 24/7 intelligent assistance.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          {% if current_user and current_user.role == 'customer' %}
+            <a href="/customer/apply-account" class="btn btn-emerald btn-lg px-4 d-inline-flex align-items-center gap-2">
+              <i class="bi bi-camera-video-fill"></i> Open Account (Video KYC)
+            </a>
+          {% else %}
+            <a href="/auth/register" class="btn btn-emerald btn-lg px-4 d-inline-flex align-items-center gap-2">
+              <i class="bi bi-person-plus-fill"></i> Open an Account (Video KYC)
+            </a>
+          {% endif %}
+          <a href="/auth/login" class="btn btn-outline-light btn-lg px-4 d-inline-flex align-items-center gap-2">
+            <i class="bi bi-box-arrow-in-right"></i> Customer Sign In
+          </a>
+        </div>
+
+        <div class="d-flex align-items-center gap-4 mt-4 pt-3 border-top border-white-subtle opacity-75">
+          <div class="d-flex align-items-center gap-2 small text-white">
+            <i class="bi bi-shield-fill-check text-success fs-5"></i> 256-Bit SSL Encryption
+          </div>
+          <div class="d-flex align-items-center gap-2 small text-white">
+            <i class="bi bi-patch-check-fill text-info fs-5"></i> Paperless Video KYC
+          </div>
+          <div class="d-flex align-items-center gap-2 small text-white">
+            <i class="bi bi-lightning-charge-fill text-warning fs-5"></i> Instant NEFT / IMPS
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <!-- Visual Digital Banking Showcase Card -->
+        <div class="card card-dark shadow-lg border-0 p-3" style="border-radius: 1.25rem;">
+          <div class="p-3 pb-2 d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-2">
+              <span class="brand-badge" style="width: 32px; height: 32px;"><i class="bi bi-bank2"></i></span>
+              <span class="fw-bold text-white">SmartBank Platinum</span>
+            </div>
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1">Active</span>
+          </div>
+
+          <div class="card-body p-3">
+            <div class="small text-secondary mb-1">Total Available Balance</div>
+            <div class="display-6 fw-bold text-white mb-3" style="letter-spacing: -0.5px;">₹4,85,250.00</div>
+
+            <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08);">
+              <div class="d-flex justify-content-between align-items-center small text-secondary mb-1">
+                <span>Primary Account</span>
+                <span class="text-white fw-semibold">Savings Platinum</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-white font-monospace fs-6">SBIN &bull;&bull;&bull;&bull; 4012</span>
+                <span class="badge bg-info bg-opacity-25 text-info">₹3,50,000.00</span>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <a href="/auth/login" class="btn btn-emerald btn-sm flex-fill text-center py-2">
+                <i class="bi bi-send me-1"></i> Send Money
+              </a>
+              <a href="/auth/login" class="btn btn-outline-light btn-sm flex-fill text-center py-2">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i> Statement
+              </a>
+            </div>
+
+            <div class="mt-3 pt-2 text-center">
+              <span class="small text-secondary" style="font-size: 0.75rem;">
+                <i class="bi bi-shield-check text-success me-1"></i> Regulated by RBI banking prudential guidelines
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trust & Metric Counters Banner -->
+<div class="bg-white border-bottom py-4">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3">
+        <div class="h3 fw-bold text-dark mb-0">₹100 Cr+</div>
+        <div class="small text-muted">Daily Settlement Volume</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="h3 fw-bold text-success mb-0">99.98%</div>
+        <div class="small text-muted">Transaction Success Rate</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="h3 fw-bold text-primary mb-0">&lt; 3 Mins</div>
+        <div class="small text-muted">Digital Video KYC Verification</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="h3 fw-bold text-dark mb-0">24x7</div>
+        <div class="small text-muted">Intelligent AI Banking Support</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10 Real Banking Services Grid -->
+<div id="features" class="container py-5">
+  <div class="text-center mb-5">
+    <span class="badge bg-light text-primary border px-3 py-2 rounded-pill fw-semibold mb-2">Banking Services</span>
+    <h2 class="fw-bold display-6 text-dark">Comprehensive Financial Solutions</h2>
+    <p class="text-muted mx-auto" style="max-width: 650px;">
+      Empowering retail individuals, professionals, and growing enterprises across India with transparent, technology-driven financial products.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Service 1: Savings Accounts -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box emerald mb-3">
+            <i class="bi bi-wallet2"></i>
+          </div>
+          <h5 class="fw-bold text-dark">High-Yield Savings Accounts</h5>
+          <p class="text-muted small">
+            Grow your hard-earned funds with competitive interest rates, zero minimum balance charges on select tiers, and round-the-clock digital liquidity.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 2: Current / Business Accounts -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box navy mb-3">
+            <i class="bi bi-briefcase"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Business Current Accounts</h5>
+          <p class="text-muted small">
+            Designed for merchants and commercial operations. Enjoy unlimited inward collections, high transaction throughput, and bulk transfer capabilities.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 3: Instant Transfers (NEFT/IMPS) -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box emerald mb-3">
+            <i class="bi bi-send-check"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Instant NEFT & IMPS Transfers</h5>
+          <p class="text-muted small">
+            Send money to any bank account in India in real time. Backed by atomic transaction protocols preventing duplicate debits and payment disputes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 4: Cash Deposits & Safe Withdrawals -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box gold mb-3">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Safe Deposits & Withdrawals</h5>
+          <p class="text-muted small">
+            Frictionless inward credits and cash withdrawals with real-time balance reflections, verifiable transaction receipts, and zero hidden ledger charges.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 5: Home & Vehicle Loans -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box navy mb-3">
+            <i class="bi bi-house-door"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Home & Vehicle Financing</h5>
+          <p class="text-muted small">
+            Low-interest lending solutions for your dream residence or vehicle. Transparent EMI structures, structured repayment tenures, and swift approvals.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 6: Education & Personal Loans -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box emerald mb-3">
+            <i class="bi bi-mortarboard"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Education & Personal Loans</h5>
+          <p class="text-muted small">
+            Fund higher education or immediate personal aspirations. Quick digital loan applications with automated installment repayment deductions.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 7: Official Account Statements -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box navy mb-3">
+            <i class="bi bi-file-earmark-pdf"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Digital Statements (PDF & CSV)</h5>
+          <p class="text-muted small">
+            Instant downloads of tamper-evident account statements in print-ready PDF format (with masked account numbers) and exportable CSVs for analysis.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 8: Digital KYC & Video Verification -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box gold mb-3">
+            <i class="bi bi-camera-video"></i>
+          </div>
+          <h5 class="fw-bold text-dark">Paperless Video KYC Verification</h5>
+          <p class="text-muted small mb-2">
+            Open an account from home in minutes. Upload Aadhaar or PAN documents, submit your digital signature on canvas, and complete live camera verification.
+          </p>
+          <a href="/customer/apply-account" class="small fw-semibold text-success text-decoration-none d-inline-flex align-items-center gap-1">
+            Open Account with Video KYC <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 9: 24/7 AI-Powered Support Assistant -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 card-lift p-3 border">
+        <div class="card-body">
+          <div class="metric-icon-box emerald mb-3">
+            <i class="bi bi-chat-heart"></i>
+          </div>
+          <h5 class="fw-bold text-dark">24x7 Intelligent AI Assistant</h5>
+          <p class="text-muted small">
+            Instant natural-language answers to banking queries, real-time balance inquiries, transaction lookups, and loan status updates at your fingertips.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service 10: Bank-Grade Security -->
+    <div class="col-md-12">
+      <div class="card card-dark p-4 border-0">
+        <div class="row align-items-center g-4">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <span class="badge bg-success text-white px-3 py-1">Enterprise Protection</span>
+              <h4 class="fw-bold text-white mb-0">Bank-Grade Security Architecture</h4>
+            </div>
+            <p class="text-light opacity-75 small mb-0">
+              Your financial assets and privacy are safeguarded by state-of-the-art Argon2id cryptographic password hashing, strict role-based access control (RBAC), multi-layer audit trails, and automated transaction anomaly monitoring.
+            </p>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <a href="/auth/register" class="btn btn-emerald px-4 py-2">
+              <i class="bi bi-shield-check me-1"></i> Start Secure Banking
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loan Products Showcase Section -->
+<div id="loans" class="bg-light py-5 border-top">
+  <div class="container py-lg-3">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold mb-2">Competitive Interest Rates</span>
+        <h2 class="fw-bold display-6 text-dark mb-3">Flexible Borrowing for Every Milestone</h2>
+        <p class="text-muted">
+          Whether buying a family home, acquiring an electric vehicle, funding a university degree, or meeting seasonal needs, SmartBank offers transparent loans with simple online applications and rapid review.
+        </p>
+        <ul class="list-unstyled d-flex flex-column gap-3 mt-4">
+          <li class="d-flex align-items-start gap-3">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>
+              <strong>Transparent Terms:</strong> Fixed interest rates starting at 7.5% per annum with no surprise maintenance fees.
+            </div>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>
+              <strong>Direct Account Repayments:</strong> Auto-debit installments directly from your savings or current balance with instant balance updates.
+            </div>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>
+              <strong>Real-Time Tracking:</strong> Monitor your application lifecycle from submission to loan disbursal directly in your dashboard or chat.
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="card p-3 border h-100">
+              <h6 class="fw-bold text-dark"><i class="bi bi-mortarboard text-primary me-2"></i> Education Loan</h6>
+              <div class="h4 fw-bold text-success mt-2 mb-1">8.5% p.a.</div>
+              <p class="text-muted small mb-0">Up to ₹20,00,000 for top domestic and international universities.</p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card p-3 border h-100">
+              <h6 class="fw-bold text-dark"><i class="bi bi-house text-success me-2"></i> Home Loan</h6>
+              <div class="h4 fw-bold text-success mt-2 mb-1">7.5% p.a.</div>
+              <p class="text-muted small mb-0">Tenures up to 30 years for purchasing or constructing your home.</p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card p-3 border h-100">
+              <h6 class="fw-bold text-dark"><i class="bi bi-car-front text-warning me-2"></i> Vehicle Loan</h6>
+              <div class="h4 fw-bold text-success mt-2 mb-1">9.0% p.a.</div>
+              <p class="text-muted small mb-0">Up to 90% on-road financing for four-wheelers and two-wheelers.</p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card p-3 border h-100">
+              <h6 class="fw-bold text-dark"><i class="bi bi-person text-info me-2"></i> Personal Loan</h6>
+              <div class="h4 fw-bold text-success mt-2 mb-1">11.5% p.a.</div>
+              <p class="text-muted small mb-0">Collateral-free liquidity for healthcare, weddings, or renovations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA Banner -->
+<div class="py-5" style="background: linear-gradient(135deg, var(--navy-darkest) 0%, var(--navy-primary) 100%);">
+  <div class="container text-center py-4">
+    <h2 class="fw-bold text-white display-6 mb-3">Ready to Experience Modern Digital Banking?</h2>
+    <p class="text-light opacity-75 mx-auto mb-4" style="max-width: 550px;">
+      Join thousands of satisfied SmartBank customers. Open your account today with our seamless online KYC verification.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      {% if current_user and current_user.role == 'customer' %}
+        <a href="/customer/apply-account" class="btn btn-emerald btn-lg px-4"><i class="bi bi-camera-video-fill me-2"></i> Open Account (Video KYC)</a>
+      {% else %}
+        <a href="/auth/register" class="btn btn-emerald btn-lg px-4"><i class="bi bi-person-plus-fill me-2"></i> Open an Account (Video KYC)</a>
+      {% endif %}
+      <a href="/auth/login" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Portal</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

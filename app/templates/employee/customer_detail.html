@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Customer #{{ customer.id }} — SmartBank Staff{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <a href="/employee/customers" class="btn btn-outline-secondary btn-sm mb-2">&larr; Back to Customers</a>
+    <h3 class="fw-bold">{{ customer.full_name }}</h3>
+    <span class="text-muted small">Customer Account ID #{{ customer.id }} | User: {{ customer.user.username }}</span>
+  </div>
+
+  <div class="row g-4">
+    <!-- Customer Info Card -->
+    <div class="col-md-4">
+      <div class="card shadow-sm p-3 h-100">
+        <h5 class="fw-bold border-bottom pb-2 mb-3">Profile Information</h5>
+        <div class="small mb-2"><strong>Email:</strong> {{ customer.user.email }}</div>
+        <div class="small mb-2"><strong>Phone:</strong> {{ customer.phone }}</div>
+        <div class="small mb-2"><strong>Address:</strong> {{ customer.address }}</div>
+        <div class="small mb-2"><strong>Status:</strong> 
+          <span class="badge {% if customer.user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+            {{ 'ACTIVE' if customer.user.is_active else 'DEACTIVATED' }}
+          </span>
+        </div>
+        <div class="small mb-2"><strong>Member Since:</strong> {{ customer.created_at.strftime('%Y-%m-%d') }}</div>
+      </div>
+    </div>
+
+    <!-- Accounts Management -->
+    <div class="col-md-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-wallet2 text-primary me-2"></i> Linked Accounts & Operational Status
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Account Number</th>
+                  <th>Type</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                  <th class="text-end">Change Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for acc in accounts %}
+                  <tr>
+                    <td class="font-monospace fw-semibold">{{ acc.account_number }}</td>
+                    <td>{{ acc.account_type }}</td>
+                    <td class="fw-bold">{{ cents_to_currency(acc.balance_cents) }}</td>
+                    <td>
+                      <span class="badge {% if acc.status == 'ACTIVE' %}badge-active{% elif acc.status == 'FROZEN' %}badge-frozen{% else %}badge-inactive{% endif %}">
+                        {{ acc.status }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <form action="/employee/accounts/{{ acc.account_number }}/status" method="POST" class="d-inline-flex gap-1">
+                        <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                        <select name="status" class="form-select form-select-sm" style="width: 110px;">
+                          <option value="ACTIVE" {% if acc.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+                          <option value="FROZEN" {% if acc.status == 'FROZEN' %}selected{% endif %}>FROZEN</option>
+                          <option value="INACTIVE" {% if acc.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+                          <option value="CLOSED" {% if acc.status == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary btn-sm py-1 px-2" title="Save Status">
+                          <i class="bi bi-check-lg"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">No accounts linked.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loans section -->
+  <div class="card shadow-sm mt-4">
+    <div class="card-header fw-bold">
+      <i class="bi bi-cash-coin text-warning me-2"></i> Customer Loan History
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Loan Ref</th>
+              <th>Category</th>
+              <th>Requested</th>
+              <th>Approved</th>
+              <th>Outstanding</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in loans %}
+              <tr>
+                <td class="font-monospace small fw-semibold">{{ l.loan_reference }}</td>
+                <td>{{ l.category }}</td>
+                <td>{{ cents_to_currency(l.amount_cents) }}</td>
+                <td class="fw-semibold text-success">{{ cents_to_currency(l.approved_amount_cents) }}</td>
+                <td class="fw-bold text-danger">{{ cents_to_currency(l.outstanding_balance_cents) }}</td>
+                <td>
+                  <span class="badge {% if l.status == 'APPROVED' %}badge-approved{% elif l.status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                    {{ l.status }}
+                  </span>
+                </td>
+                <td class="small text-muted">{{ l.created_at.strftime('%Y-%m-%d') }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No loan history on record.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

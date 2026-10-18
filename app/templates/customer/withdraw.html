@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Withdraw Funds — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm border-0 p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="metric-icon-box navy mx-auto mb-3" style="width: 58px; height: 58px; font-size: 1.6rem;">
+            <i class="bi bi-box-arrow-up"></i>
+          </div>
+          <h4 class="fw-bold text-dark mb-1">Withdraw Funds</h4>
+          <p class="text-muted small">Debit cash securely from your available INR balance</p>
+        </div>
+
+        <form action="/customer/withdraw" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Source Account</label>
+            <select name="account_number" class="form-select" required>
+              {% for acc in accounts %}
+                <option value="{{ acc.account_number }}">
+                  {{ acc.account_number }} ({{ acc.account_type }}) — Balance: {{ cents_to_currency(acc.balance_cents) }}
+                </option>
+              {% else %}
+                <option value="" disabled>No active accounts available</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Withdrawal Amount (₹ INR)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted">₹</span>
+              <input type="number" name="amount" class="form-control" step="10" min="100.00" required placeholder="e.g. 2000.00">
+            </div>
+            <div class="form-text text-muted" style="font-size: 0.78rem;">Must not exceed available balance. Verified with atomic ledger lock.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-dark small">Description / Memo</label>
+            <input type="text" name="description" class="form-control" value="ATM / Portal Cash Withdrawal">
+          </div>
+
+          <button type="submit" class="btn btn-navy w-100 py-2 fw-semibold" {% if not accounts %}disabled{% endif %}>
+            <i class="bi bi-arrow-up-circle me-1"></i> Confirm Withdrawal
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

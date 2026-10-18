@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — SmartBank Digital Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-lg border-0 overflow-hidden" style="border-radius: 1rem;">
+        <!-- Header banner -->
+        <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, var(--navy-darkest) 0%, var(--navy-primary) 100%);">
+          <div class="brand-badge mx-auto mb-3" style="width: 50px; height: 50px; font-size: 1.5rem;">
+            <i class="bi bi-bank2"></i>
+          </div>
+          <h4 class="fw-bold mb-1" id="login-title">Customer Sign In</h4>
+          <p class="text-light opacity-75 small mb-0">Secure Access to SmartBank Digital Services</p>
+        </div>
+
+        <div class="p-4 p-md-5">
+          <!-- Role Navigation Tabs (Pure UI selector for context) -->
+          <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-3" style="background-color: #f1f5f9;" id="roleTabs">
+            <li class="nav-item">
+              <button class="nav-link active py-2 fw-semibold small" type="button" onclick="setLoginRole('customer', 'Customer Sign In')">
+                <i class="bi bi-person me-1"></i> Customer
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link py-2 fw-semibold small" type="button" onclick="setLoginRole('employee', 'Employee Staff Sign In')">
+                <i class="bi bi-briefcase me-1"></i> Employee
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link py-2 fw-semibold small" type="button" onclick="setLoginRole('admin', 'Admin Console Sign In')">
+                <i class="bi bi-shield-lock me-1"></i> Admin
+              </button>
+            </li>
+          </ul>
+
+          <form action="/auth/login" method="POST">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark small">Username or Registered Email</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                <input type="text" name="username_or_email" class="form-control border-start-0" required placeholder="Enter username or email" value="{{ username_or_email or '' }}">
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-semibold text-dark small mb-0">Password</label>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-key"></i></span>
+                <input type="password" name="password" id="login-password" class="form-control border-start-0 border-end-0" required placeholder="Enter your password">
+                <button type="button" class="btn btn-outline-secondary border-start-0" onclick="togglePasswordVisibility()">
+                  <i class="bi bi-eye" id="pwd-eye-icon"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-emerald w-100 py-2 fw-semibold">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Account
+            </button>
+          </form>
+
+          <hr class="my-4" style="border-color: #e2e8f0;">
+
+          <div class="text-center small">
+            <span class="text-muted">New to SmartBank?</span>
+            <a href="/auth/register" class="fw-semibold text-success ms-1">Open an Account with Video KYC</a>
+          </div>
+
+          <div class="mt-4 pt-2 text-center text-muted" style="font-size: 0.75rem;">
+            <i class="bi bi-lock-fill text-success me-1"></i> 256-Bit SSL Encrypted Connection
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setLoginRole(role, titleText) {
+    document.getElementById('login-title').textContent = titleText;
+    const buttons = document.querySelectorAll('#roleTabs .nav-link');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.closest('.nav-link').classList.add('active');
+  }
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById('login-password');
+    const icon = document.getElementById('pwd-eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  }
+</script>
+{% endblock %}

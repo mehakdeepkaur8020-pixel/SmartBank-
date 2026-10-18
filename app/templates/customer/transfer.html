@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Transfer Funds — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card shadow-sm border-0 p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="metric-icon-box emerald mx-auto mb-3" style="width: 58px; height: 58px; font-size: 1.6rem;">
+            <i class="bi bi-send-fill"></i>
+          </div>
+          <h4 class="fw-bold text-dark mb-1">Instant Funds Transfer</h4>
+          <p class="text-muted small">Real-time NEFT / IMPS transfers between Indian bank accounts</p>
+        </div>
+
+        <form action="/customer/transfer" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Source Account (Debit)</label>
+            <select name="source_account_number" class="form-select" required>
+              {% for acc in accounts %}
+                <option value="{{ acc.account_number }}">
+                  {{ acc.account_number }} ({{ acc.account_type }}) — Available: {{ cents_to_currency(acc.balance_cents) }}
+                </option>
+              {% else %}
+                <option value="" disabled>No active accounts available</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Recipient Account Number (Credit)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted"><i class="bi bi-credit-card-2-front"></i></span>
+              <input type="text" name="destination_account_number" class="form-control text-uppercase font-monospace" required placeholder="e.g. SBIN40129841">
+            </div>
+            <div class="form-text text-muted" style="font-size: 0.78rem;">Enter the recipient's SmartBank Indian account number.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Transfer Amount (₹ INR)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted">₹</span>
+              <input type="number" name="amount" class="form-control" step="10" min="1.00" required placeholder="e.g. 5000.00">
+            </div>
+            <div class="form-text text-muted" style="font-size: 0.78rem;">Zero transfer charges. Executed with atomic ACID lock.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-dark small">Payment Note / Purpose</label>
+            <input type="text" name="description" class="form-control" value="IMPS / NEFT Online Transfer">
+          </div>
+
+          <div class="alert alert-info py-2 small d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-shield-lock-fill fs-5 text-info"></i>
+            <div>Atomic Transaction Guarantee: If recipient credit fails, your account is immediately refunded without ledger discrepancies.</div>
+          </div>
+
+          <button type="submit" class="btn btn-emerald w-100 py-2 fw-semibold" {% if not accounts %}disabled{% endif %}>
+            <i class="bi bi-arrow-right-circle me-1"></i> Authorize & Send Funds
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

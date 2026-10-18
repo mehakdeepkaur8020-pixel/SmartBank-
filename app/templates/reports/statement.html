@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Account Statement — SmartBank{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    nav, footer, .btn, .filter-card, #chatbot-container, .alert, .page-header-navy {
+      display: none !important;
+    }
+    .card {
+      box-shadow: none !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph text-emerald me-2"></i> Official Account Statement</h2>
+        <span class="text-light opacity-75 small">Download official statements in PDF and CSV format with Indian Rupee (₹) ledger totals</span>
+      </div>
+      {% if selected_account %}
+        <div class="d-flex gap-2">
+          <button onclick="window.print()" class="btn btn-outline-light btn-sm"><i class="bi bi-printer me-1"></i> Print</button>
+          <a href="/reports/statement/pdf?account_number={{ selected_account.account_number }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-emerald btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF Statement
+          </a>
+          <a href="/reports/statement/csv?account_number={{ selected_account.account_number }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-filetype-csv me-1"></i> Export CSV
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Filter Card -->
+  <div class="card shadow-sm border-0 mb-4 filter-card p-4">
+    <form method="GET" action="/reports/statement" class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold text-dark">Select Account</label>
+        <select name="account_number" class="form-select" required>
+          {% for acc in accounts %}
+            <option value="{{ acc.account_number }}" {% if selected_account and selected_account.account_number == acc.account_number %}selected{% endif %}>
+              {{ acc.account_number }} ({{ acc.account_type }}) — Balance: {{ cents_to_currency(acc.balance_cents) }}
+            </option>
+          {% else %}
+            <option value="" disabled>No accounts available</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-dark">From Date</label>
+        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-dark">To Date</label>
+        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-navy flex-fill"><i class="bi bi-funnel me-1"></i> Generate</button>
+        <a href="/reports/statement" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+
+  {% if selected_account %}
+    <!-- Statement Print Header Card -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+          <div>
+            <h4 class="fw-bold text-dark mb-1"><i class="bi bi-bank2 text-emerald me-2"></i> SmartBank Digital Financial Services</h4>
+            <div class="small text-muted">Official Core Banking Customer Statement &bull; Regulated Institution</div>
+          </div>
+          <div class="text-end small">
+            <div><strong>Status:</strong> <span class="badge bg-success">{{ selected_account.status }}</span></div>
+            <div class="text-muted mt-1">Currency: <strong>INR (₹)</strong></div>
+          </div>
+        </div>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div><strong>Account Holder:</strong> {{ selected_account.customer.full_name if selected_account.customer else 'N/A' }}</div>
+            <div><strong>Email:</strong> {{ selected_account.customer.user.email if selected_account.customer and selected_account.customer.user else 'N/A' }}</div>
+            <div><strong>Contact:</strong> {{ selected_account.customer.phone if selected_account.customer else 'N/A' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div><strong>Account Number (Masked):</strong> <span class="font-monospace fw-bold">{{ selected_account.account_number[:4] }} &bull;&bull;&bull;&bull; {{ selected_account.account_number[-4:] }}</span></div>
+            <div><strong>Account Type:</strong> {{ selected_account.account_type }}</div>
+            <div><strong>Available Balance:</strong> <span class="fs-6 fw-bold text-success">{{ cents_to_currency(selected_account.balance_cents) }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Statement Table -->
+    <div class="card shadow-sm border-0 overflow-hidden">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-smartbank table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Reference</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th class="text-end">Amount (INR)</th>
+                <th class="text-end">Balance After</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in transactions %}
+                {% set is_credit = (t.destination_account_id == selected_account.id and t.transaction_type in ['DEPOSIT', 'TRANSFER']) %}
+                <tr>
+                  <td class="small text-muted">{{ t.created_at.strftime('%Y-%m-%d') }}</td>
+                  <td class="font-monospace small fw-bold">{{ t.transaction_reference }}</td>
+                  <td>
+                    <span class="badge {% if is_credit %}bg-success{% else %}bg-primary{% endif %}">
+                      {{ t.transaction_type }}
+                    </span>
+                  </td>
+                  <td class="small">{{ t.description }}</td>
+                  <td class="text-end fw-bold {% if is_credit %}text-success{% else %}text-dark{% endif %}">
+                    {{ '+' if is_credit else '-' }}{{ cents_to_currency(t.amount_cents) }}
+                  </td>
+                  <td class="text-end small text-muted">
+                    {{ cents_to_currency(t.balance_after_cents) if t.balance_after_cents is not None else '—' }}
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    No transactions recorded for the selected account and period.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="card shadow-sm border-0 text-center py-5">
+      <div class="text-muted"><i class="bi bi-file-earmark-bar-graph fs-1 d-block mb-2"></i></div>
+      <h5 class="fw-bold text-dark">No Account Selected</h5>
+      <p class="text-muted small">Please select an account from the dropdown above to view and download statements.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

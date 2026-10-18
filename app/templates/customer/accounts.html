@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}My Accounts — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-wallet2 text-emerald me-2"></i> Bank Accounts Portfolio</h2>
+        <span class="text-light opacity-75 small">Manage your high-yield Savings and Current business accounts</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/customer/apply-account" class="btn btn-emerald btn-sm">
+          <i class="bi bi-camera-video-fill me-1"></i> Open Account (Video KYC)
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4">
+    {% for acc in accounts %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-top border-4 border-emerald card-lift">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-light text-dark border fw-semibold">{{ acc.account_type }}</span>
+              <span class="badge {% if acc.status == 'ACTIVE' %}bg-success{% elif acc.status == 'FROZEN' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                {{ acc.status }}
+              </span>
+            </div>
+            <h5 class="fw-bold text-dark font-monospace mb-1">{{ acc.account_number }}</h5>
+            <div class="text-muted small mb-3">Currency: <strong>INR (₹)</strong></div>
+
+            <div class="p-3 bg-light rounded-3 mb-3 border">
+              <div class="small text-muted mb-1">Available Ledger Balance</div>
+              <div class="fs-4 fw-bold text-success">{{ cents_to_currency(acc.balance_cents) }}</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <a href="/customer/transfer" class="btn btn-navy btn-sm flex-fill">
+                <i class="bi bi-send me-1"></i> Transfer
+              </a>
+              <a href="/reports/statement?account_number={{ acc.account_number }}" class="btn btn-outline-primary btn-sm flex-fill">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Statement
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="col-12 text-center py-5">
+        <div class="text-muted mb-3"><i class="bi bi-wallet2 fs-1"></i></div>
+        <h5 class="fw-bold text-dark">No Accounts Found</h5>
+        <p class="text-muted small">You currently do not have any active bank accounts registered.</p>
+        <a href="/customer/apply-account" class="btn btn-emerald">
+          <i class="bi bi-camera-video-fill me-1"></i> Open Account with Video KYC
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

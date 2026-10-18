@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Open an Account — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+      <div class="card shadow-lg border-0 overflow-hidden" style="border-radius: 1rem;">
+        <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, var(--navy-darkest) 0%, var(--navy-primary) 100%);">
+          <div class="brand-badge mx-auto mb-3" style="width: 50px; height: 50px; font-size: 1.5rem;">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Open a SmartBank Digital Account</h4>
+          <p class="text-light opacity-75 small mb-0">Step 1: Create Profile &bull; Step 2: Paperless Video KYC & Document Upload</p>
+        </div>
+
+        <div class="p-4 p-md-5">
+          <form action="/auth/register" method="POST">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">First Name</label>
+                <input type="text" name="first_name" class="form-control" required placeholder="e.g. Aarav">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Last Name</label>
+                <input type="text" name="last_name" class="form-control" required placeholder="e.g. Sharma">
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Username</label>
+                <input type="text" name="username" class="form-control" required minlength="3" placeholder="e.g. aaravsharma">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Email Address</label>
+                <input type="email" name="email" class="form-control" required placeholder="e.g. aarav@example.com">
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Password (min 8 chars)</label>
+                <input type="password" name="password" class="form-control" required minlength="8" placeholder="••••••••">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-control" required minlength="8" placeholder="••••••••">
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Mobile Number (India)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">+91</span>
+                  <input type="tel" name="phone" class="form-control" required placeholder="98765 43210" pattern="[0-9]{10}">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark small">Account Type</label>
+                <select name="account_type" class="form-select">
+                  <option value="SAVINGS" selected>Savings Account (Personal Retail)</option>
+                  <option value="CURRENT">Current Account (Commercial & Business)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark small">Residential Address in India</label>
+              <textarea name="address" class="form-control" rows="2" required placeholder="Flat/House No., Landmark, City, State - PIN Code"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark small">Planned Opening Deposit (₹ INR)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted">₹</span>
+                <input type="number" name="initial_deposit" class="form-control" step="100" min="0" value="5000">
+              </div>
+              <div class="form-text text-muted" style="font-size: 0.78rem;">
+                Opening funds will be credited to your account upon branch employee review and KYC approval.
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-emerald w-100 py-2 fw-semibold">
+              <i class="bi bi-camera-video-fill me-2"></i> Register & Proceed to Video KYC
+            </button>
+          </form>
+
+          <hr class="my-4" style="border-color: #e2e8f0;">
+
+          <div class="text-center small">
+            <span class="text-muted">Already have a customer account?</span>
+            <a href="/auth/login" class="fw-semibold text-success ms-1">Customer Sign In</a>
+          </div>
+
+          <div class="mt-4 pt-2 text-center text-muted" style="font-size: 0.75rem;">
+            <i class="bi bi-shield-check text-success me-1"></i> Regulated Indian Banking Environment &bull; Data Encrypted
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Loan Facilities — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-piggy-bank text-warning me-2"></i> Loans & Credit Facilities</h2>
+        <span class="text-light opacity-75 small">Education, Home, Vehicle, and Personal loans in INR (₹)</span>
+      </div>
+      <div>
+        <button class="btn btn-emerald btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#applyLoanModal">
+          <i class="bi bi-plus-circle me-1"></i> Apply for New Loan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4 mb-5">
+    {% for l in loans %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-top border-4 {% if l.status == 'APPROVED' %}border-success{% elif l.status == 'REJECTED' %}border-danger{% else %}border-warning{% endif %} card-lift">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-light text-dark border fw-semibold">{{ l.category }}</span>
+              <span class="badge {% if l.status == 'APPROVED' %}bg-success{% elif l.status == 'REJECTED' %}bg-danger{% elif l.status == 'CLOSED' %}bg-secondary{% endif %}">
+                {{ l.status }}
+              </span>
+            </div>
+
+            <h5 class="fw-bold text-dark font-monospace mb-1">{{ l.loan_reference }}</h5>
+            <div class="small text-muted mb-3">Applied: {{ l.created_at.strftime('%Y-%m-%d') }} &bull; Term: {{ l.term_months }} months</div>
+
+            <div class="p-3 bg-light rounded-3 mb-3 small border">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Requested Amount:</span>
+                <span class="fw-semibold text-dark">{{ cents_to_currency(l.amount_cents) }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Approved Amount:</span>
+                <span class="fw-bold text-success">{{ cents_to_currency(l.approved_amount_cents) }}</span>
+              </div>
+              <div class="d-flex justify-content-between border-top pt-1 mt-1">
+                <span class="text-muted">Outstanding Balance:</span>
+                <span class="fw-bold text-danger">{{ cents_to_currency(l.outstanding_balance_cents) }}</span>
+              </div>
+            </div>
+
+            {% if l.review_reason %}
+              <div class="alert alert-secondary py-1 px-2 small mb-3">
+                <strong>Review Remark:</strong> {{ l.review_reason }}
+              </div>
+            {% endif %}
+
+            {% if l.status == 'APPROVED' and l.outstanding_balance_cents > 0 %}
+              <button class="btn btn-emerald btn-sm w-100" data-bs-toggle="modal" data-bs-target="#repayModal{{ l.id }}">
+                <i class="bi bi-credit-card me-1"></i> Make Installment Repayment
+              </button>
+            {% elif l.status == 'CLOSED' %}
+              <div class="text-center text-success small fw-semibold"><i class="bi bi-check2-circle"></i> Loan Fully Discharged</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Repayment Modal for this loan -->
+      <div class="modal fade" id="repayModal{{ l.id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form action="/customer/loans/{{ l.id }}/repay" method="POST">
+              <div class="modal-header">
+                <h5 class="modal-title fw-bold">Repay Loan {{ l.loan_reference }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Current Outstanding Balance</label>
+                  <div class="fs-5 fw-bold text-danger">{{ cents_to_currency(l.outstanding_balance_cents) }}</div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Pay from Account</label>
+                  <select name="from_account_number" class="form-select" required>
+                    {% for acc in accounts %}
+                      <option value="{{ acc.account_number }}">
+                        {{ acc.account_number }} ({{ acc.account_type }}) — Balance: {{ cents_to_currency(acc.balance_cents) }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Repayment Amount (₹ INR)</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light text-muted">₹</span>
+                    <input type="number" name="amount" class="form-control" step="100" min="100.00" required placeholder="e.g. 5000.00">
+                  </div>
+                  <div class="form-text text-muted" style="font-size: 0.78rem;">Will be debited from selected account and subtracted from loan balance.</div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-emerald btn-sm">Confirm Repayment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="col-12 text-center py-5">
+        <div class="text-muted mb-3"><i class="bi bi-piggy-bank fs-1"></i></div>
+        <h5 class="fw-bold text-dark">No Loan Facilities Active</h5>
+        <p class="text-muted small">You currently have no active or pending loan records.</p>
+        <button class="btn btn-emerald btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#applyLoanModal">
+          <i class="bi bi-plus-circle me-1"></i> Apply for Financing
+        </button>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Apply Loan Modal -->
+<div class="modal fade" id="applyLoanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/customer/loans/apply" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Apply for Financing</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Loan Category</label>
+            <select name="category" class="form-select" required>
+              <option value="EDUCATION">Education Loan (College tuition & academic needs)</option>
+              <option value="PERSONAL">Personal Loan (General liquidity)</option>
+              <option value="HOME">Home Loan (Mortgage & property development)</option>
+              <option value="VEHICLE">Vehicle Loan (Auto finance)</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Requested Amount (₹ INR)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted">₹</span>
+                <input type="number" name="amount" class="form-control" step="5000" min="10000" required placeholder="e.g. 250000">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small">Term (Months)</label>
+              <input type="number" name="term_months" class="form-control" min="6" max="360" value="24" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Monthly Income (₹ INR)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted">₹</span>
+              <input type="number" name="monthly_income" class="form-control" step="1000" min="15000" required placeholder="e.g. 75000">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small">Purpose of Loan</label>
+            <textarea name="purpose" class="form-control" rows="3" required placeholder="State why you require financing and how you plan to manage repayment..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-emerald btn-sm fw-semibold">Submit Loan Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

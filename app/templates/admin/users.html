@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}User & Role Management — SmartBank Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h3 class="fw-bold mb-1">User & Role Management (RBAC)</h3>
+    <span class="text-muted small">Elevate or change user roles (Customer, Employee, Admin) and toggle account activation</span>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Status</th>
+              <th>Joined Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+              <tr>
+                <td class="text-muted fw-bold">#{{ u.id }}</td>
+                <td class="fw-semibold">{{ u.username }}</td>
+                <td class="small">{{ u.email }}</td>
+                <td>
+                  <form action="/admin/users/{{ u.id }}/role" method="POST" class="d-inline-flex gap-1 align-items-center">
+                    <select name="role" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                      <option value="customer" {% if u.role == 'customer' %}selected{% endif %}>Customer</option>
+                      <option value="employee" {% if u.role == 'employee' %}selected{% endif %}>Employee</option>
+                      <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  <span class="badge {% if u.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                    {{ 'Active' if u.is_active else 'Deactivated' }}
+                  </span>
+                </td>
+                <td class="small text-muted">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-end">
+                  {% if u.id != current_user.id %}
+                    <form action="/admin/users/{{ u.id }}/toggle-active" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} py-0 px-2">
+                        {{ 'Deactivate' if u.is_active else 'Activate' }}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="badge bg-secondary">Current User</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">No users found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

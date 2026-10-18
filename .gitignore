@@ -1,0 +1,41 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables & Secrets
+.env
+!.env.example
+
+# SQLite Databases & Local Storage
+*.db
+*.sqlite3
+smartbank.db
+test_smartbank.db
+
+# User Uploads (Documents & Signatures)
+uploads/documents/*
+uploads/signatures/*
+!uploads/documents/.gitkeep
+!uploads/signatures/.gitkeep
+
+# IDE & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Pytest / Coverage Cache
+.pytest_cache/
+.coverage
+htmlcov/

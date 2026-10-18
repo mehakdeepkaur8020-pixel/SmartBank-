@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Dashboard — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h3 class="fw-bold mb-1">System Administration & Oversight</h3>
+      <span class="text-muted small">Global metrics, RBAC management, and complete audit trail controls</span>
+    </div>
+    <span class="badge bg-danger px-3 py-2 text-uppercase">Admin Access</span>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card metric-card h-100 p-3">
+        <div class="text-muted small fw-semibold text-uppercase">Total System Users</div>
+        <div class="metric-number text-primary my-1">{{ total_users }}</div>
+        <a href="/admin/users" class="small text-decoration-none">Manage roles &raquo;</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card success h-100 p-3">
+        <div class="text-muted small fw-semibold text-uppercase">Total Customers</div>
+        <div class="metric-number text-success my-1">{{ total_customers }}</div>
+        <div class="small text-muted">{{ active_accounts }} Active Accounts</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card warning h-100 p-3">
+        <div class="text-muted small fw-semibold text-uppercase">Total Transactions</div>
+        <div class="metric-number text-warning my-1">{{ total_transactions }}</div>
+        <a href="/employee/transactions" class="small text-decoration-none">Ledger records &raquo;</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card metric-card danger h-100 p-3">
+        <div class="text-muted small fw-semibold text-uppercase">Pending Loans</div>
+        <div class="metric-number text-danger my-1">{{ pending_loans }}</div>
+        <a href="/employee/loans" class="small text-decoration-none">Review loans &raquo;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Activity Chart -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">
+          <i class="bi bi-pie-chart text-primary me-2"></i> Transaction Breakdown
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center p-4">
+          <div style="max-height: 260px; width: 100%;">
+            <canvas id="txnTypeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick User Management Preview -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-people text-primary me-2"></i> Recent Registered Users</span>
+          <a href="/admin/users" class="btn btn-sm btn-link text-decoration-none">All Users &raquo;</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in recent_users %}
+                  <tr>
+                    <td class="fw-semibold">{{ u.username }}</td>
+                    <td class="small">{{ u.email }}</td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">{{ u.role }}</span></td>
+                    <td>
+                      <span class="badge {% if u.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                        {{ 'Active' if u.is_active else 'Deactivated' }}
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Trail Preview -->
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-journal-text text-danger me-2"></i> Recent Security Audit Logs</span>
+      <a href="/admin/audit-logs" class="btn btn-sm btn-link text-decoration-none">Full Audit Trail &raquo;</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Details</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in recent_logs %}
+              <tr>
+                <td class="small text-muted">{{ l.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td><span class="badge bg-dark-subtle text-dark">{{ l.action }}</span></td>
+                <td class="small">{{ l.entity_type or '-' }} #{{ l.entity_id or '' }}</td>
+                <td class="small text-truncate" style="max-width: 300px;">{{ l.details }}</td>
+                <td class="small text-muted font-monospace">{{ l.ip_address or 'Local' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">No audit logs recorded yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById('txnTypeChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Deposits', 'Withdrawals', 'Transfers'],
+          datasets: [{
+            data: {{ txn_chart_data | tojson }},
+            backgroundColor: ['#198754', '#dc3545', '#0d6efd']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

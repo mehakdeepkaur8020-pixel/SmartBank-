@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications — SmartBank{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Alerts & Notifications</h3>
+      <span class="text-muted small">Stay updated on transactions, loan updates, and account security</span>
+    </div>
+    {% if unread_notifications_count > 0 %}
+      <form action="/customer/notifications/mark-all-read" method="POST">
+        <button type="submit" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-check2-all me-1"></i> Mark All as Read
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="list-group list-group-flush">
+      {% for n in all_notifications %}
+        <div class="list-group-item p-3 d-flex justify-content-between align-items-center {% if not n.is_read %}bg-light border-start border-4 border-primary{% endif %}">
+          <div class="d-flex align-items-start gap-3">
+            <div class="fs-4 text-primary">
+              {% if n.notification_type == 'TRANSACTION' %}
+                <i class="bi bi-arrow-left-right text-success"></i>
+              {% elif n.notification_type == 'LOAN' %}
+                <i class="bi bi-cash-coin text-warning"></i>
+              {% elif n.notification_type == 'SECURITY' %}
+                <i class="bi bi-shield-lock text-danger"></i>
+              {% else %}
+                <i class="bi bi-bell text-primary"></i>
+              {% endif %}
+            </div>
+            <div>
+              <div class="fw-bold {% if not n.is_read %}text-dark{% else %}text-secondary{% endif %}">
+                {{ n.title }}
+                {% if not n.is_read %}<span class="badge bg-danger ms-2" style="font-size: 0.65rem;">NEW</span>{% endif %}
+              </div>
+              <div class="text-secondary small mt-1">{{ n.message }}</div>
+              <div class="text-muted small mt-1" style="font-size: 0.75rem;">{{ n.created_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</div>
+            </div>
+          </div>
+          {% if not n.is_read %}
+            <form action="/customer/notifications/mark-read/{{ n.id }}" method="POST">
+              <button type="submit" class="btn btn-outline-secondary btn-sm py-1 px-2" title="Mark as read">
+                <i class="bi bi-check2"></i>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+          No notifications to display.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Institutional Reports & Audits — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-emerald me-2"></i> Operations & Institutional Reports</h2>
+        <p class="text-light opacity-75 small mb-0">Financial audit logs, clearing summaries, accounts register, and loan portfolio analytics</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/employee/reports/csv?report_type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+        </a>
+        <a href="/employee/reports/pdf?report_type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-emerald btn-sm">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF Report
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Key Metrics Summary Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="metric-card emerald">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="metric-label">Settled Transaction Volume</div>
+            <div class="metric-value">{{ total_tx_val_formatted }}</div>
+            <div class="small text-muted mt-1">{{ total_tx_vol }} total transactions executed</div>
+          </div>
+          <div class="metric-icon-box emerald">
+            <i class="bi bi-arrow-left-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card navy">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="metric-label">Total Deposits on Ledger</div>
+            <div class="metric-value">{{ total_acc_val_formatted }}</div>
+            <div class="small text-muted mt-1">{{ total_acc_count }} customer accounts active</div>
+          </div>
+          <div class="metric-icon-box navy">
+            <i class="bi bi-wallet2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card gold">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="metric-label">Active Loans Portfolio</div>
+            <div class="metric-value">{{ total_loan_disbursed_formatted }}</div>
+            <div class="small text-muted mt-1">{{ total_loan_count }} loan facilities approved</div>
+          </div>
+          <div class="metric-icon-box gold">
+            <i class="bi bi-piggy-bank"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Report Type Selector -->
+  <div class="card shadow-sm border-0 mb-4 p-4">
+    <form action="/employee/reports" method="GET" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold text-dark small">Report Category</label>
+        <select name="report_type" class="form-select">
+          <option value="transactions" {% if report_type == 'transactions' %}selected{% endif %}>Transactions Clearing & Activity</option>
+          <option value="accounts" {% if report_type == 'accounts' %}selected{% endif %}>Customer Accounts Register</option>
+          <option value="loans" {% if report_type == 'loans' %}selected{% endif %}>Loan Portfolios & Repayments</option>
+          <option value="applications" {% if report_type == 'applications' %}selected{% endif %}>Account Opening KYC Dossiers</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label fw-semibold text-dark small">Start Date</label>
+        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label fw-semibold text-dark small">End Date</label>
+        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+      </div>
+
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-navy w-100">
+          <i class="bi bi-funnel me-1"></i> Generate Report
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Report Data Display Table -->
+  <div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <h6 class="fw-bold mb-0 text-dark">
+        <i class="bi bi-table me-2 text-primary"></i>
+        {% if report_type == 'accounts' %}
+          Customer Accounts Register ({{ records|length }} records)
+        {% elif report_type == 'loans' %}
+          Loan Portfolios & Facilities ({{ records|length }} records)
+        {% elif report_type == 'applications' %}
+          Account Opening KYC Applications ({{ records|length }} records)
+        {% else %}
+          Transaction Clearing Records ({{ records|length }} records)
+        {% endif %}
+      </h6>
+
+      <div class="small text-muted">
+        Currency: <strong>INR (₹)</strong> &bull; Indian Numbering System
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      {% if records %}
+        <div class="table-responsive">
+          {% if report_type == 'accounts' %}
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Account Number</th>
+                  <th>Customer Name</th>
+                  <th>Account Type</th>
+                  <th>Balance (INR)</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for acc in records %}
+                  <tr>
+                    <td class="font-monospace fw-bold text-dark">{{ acc.account_number }}</td>
+                    <td>{{ acc.customer.full_name if acc.customer else 'N/A' }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ acc.account_type }}</span></td>
+                    <td class="fw-bold text-success">₹{{ "{:,.2f}".format(acc.balance_cents / 100) }}</td>
+                    <td>
+                      <span class="badge {% if acc.status == 'ACTIVE' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ acc.status }}
+                      </span>
+                    </td>
+                    <td class="small text-muted">{{ acc.created_at.strftime('%Y-%m-%d') }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          {% elif report_type == 'loans' %}
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Borrower</th>
+                  <th>Category</th>
+                  <th>Approved Amount</th>
+                  <th>Outstanding Balance</th>
+                  <th>Status</th>
+                  <th>Applied Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for l in records %}
+                  <tr>
+                    <td class="font-monospace fw-bold">{{ l.loan_reference }}</td>
+                    <td>{{ l.customer.full_name if l.customer else 'N/A' }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ l.category }}</span></td>
+                    <td class="fw-semibold text-dark">₹{{ "{:,.2f}".format(l.approved_amount_cents / 100) }}</td>
+                    <td class="fw-bold text-danger">₹{{ "{:,.2f}".format(l.outstanding_balance_cents / 100) }}</td>
+                    <td>
+                      <span class="badge {% if l.status == 'APPROVED' %}bg-success{% elif l.status == 'PENDING' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                        {{ l.status }}
+                      </span>
+                    </td>
+                    <td class="small text-muted">{{ l.created_at.strftime('%Y-%m-%d') }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          {% elif report_type == 'applications' %}
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Application Ref</th>
+                  <th>Applicant</th>
+                  <th>Type</th>
+                  <th>Deposit (INR)</th>
+                  <th>Video KYC</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in records %}
+                  <tr>
+                    <td class="font-monospace fw-bold">{{ a.application_reference }}</td>
+                    <td>{{ a.customer.full_name if a.customer else 'N/A' }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ a.account_type }}</span></td>
+                    <td class="fw-semibold text-success">₹{{ "{:,.2f}".format(a.initial_deposit_cents / 100) }}</td>
+                    <td>{{ a.video_verification_status }}</td>
+                    <td>
+                      <span class="badge {% if a.status == 'APPROVED' %}bg-success{% elif a.status == 'PENDING_REVIEW' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                        {{ a.status }}
+                      </span>
+                    </td>
+                    <td class="small text-muted">{{ a.created_at.strftime('%Y-%m-%d') }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          {% else %}
+            <!-- Transactions default -->
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Source</th>
+                  <th>Destination</th>
+                  <th>Amount (INR)</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for t in records %}
+                  <tr>
+                    <td class="small text-muted">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="font-monospace fw-bold">{{ t.transaction_reference }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ t.transaction_type }}</span></td>
+                    <td class="font-monospace small">{{ t.source_account.account_number if t.source_account else '—' }}</td>
+                    <td class="font-monospace small">{{ t.destination_account.account_number if t.destination_account else '—' }}</td>
+                    <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(t.amount_cents / 100) }}</td>
+                    <td>
+                      <span class="badge {% if t.status == 'COMPLETED' %}bg-success{% elif t.status == 'REVERSED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ t.status }}
+                      </span>
+                    </td>
+                    <td class="small text-truncate" style="max-width: 180px;">{{ t.description }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-file-earmark-x fs-1 d-block mb-2"></i>
+          <h6>No records match the selected criteria and date range</h6>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

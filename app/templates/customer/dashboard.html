@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard — SmartBank{% endblock %}
+
+{% block content %}
+<div class="page-header-navy">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="fw-bold mb-1">Welcome back, {{ customer.first_name if customer else current_user.username }}!</h2>
+        <span class="text-light opacity-75 small">SmartBank Personal Retail Portfolio & Digital Services</span>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="/customer/apply-account" class="btn btn-emerald btn-sm">
+          <i class="bi bi-camera-video-fill me-1"></i> Open Account (Video KYC)
+        </a>
+        <a href="/customer/deposit" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-plus-circle me-1"></i> Deposit
+        </a>
+        <a href="/customer/transfer" class="btn btn-light btn-sm text-dark fw-semibold">
+          <i class="bi bi-send me-1"></i> Transfer
+        </a>
+        <a href="/reports/statement" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Statement
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Application Alert Banner if pending review -->
+  {% if applications %}
+    {% set latest_app = applications[0] %}
+    {% if latest_app.status == 'PENDING_REVIEW' %}
+      <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4 shadow-sm border border-warning" role="alert">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+          <div>
+            <strong>Account Application Under Operational Review:</strong>
+            <div class="small text-secondary">Your {{ latest_app.account_type }} account application (Ref: <code>{{ latest_app.application_reference }}</code>) is being verified by branch staff.</div>
+          </div>
+        </div>
+        <a href="/customer/application-status" class="btn btn-warning btn-sm text-dark fw-semibold">
+          Track Status &raquo;
+        </a>
+      </div>
+    {% elif latest_app.status == 'APPROVED' and accounts|length == 1 %}
+      <div class="alert alert-success d-flex align-items-center justify-content-between mb-4 shadow-sm border border-success" role="alert">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-patch-check-fill fs-4 text-success"></i>
+          <div>
+            <strong>Account Verification Approved!</strong>
+            <div class="small text-secondary">Your account {{ accounts[0].account_number }} is verified and active for all banking operations.</div>
+          </div>
+        </div>
+        <a href="/customer/accounts" class="btn btn-success btn-sm fw-semibold">
+          Manage Account &raquo;
+        </a>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- Key Metrics Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="metric-card emerald h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Total Available Balance</div>
+            <div class="metric-value my-1">{{ total_balance_formatted }}</div>
+            <div class="small text-muted">{{ accounts|length }} Active Account(s) in INR (₹)</div>
+          </div>
+          <div class="metric-icon-box emerald">
+            <i class="bi bi-wallet2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card navy h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Primary Account Number</div>
+            <div class="metric-value my-1 font-monospace" style="font-size: 1.55rem;">
+              {% if accounts %}
+                {{ accounts[0].account_number[:4] }} &bull;&bull;&bull;&bull; {{ accounts[0].account_number[-4:] }}
+              {% else %}
+                Pending Setup
+              {% endif %}
+            </div>
+            <div class="small text-muted">
+              {% if accounts %}
+                {{ accounts[0].account_type }} &bull; <span class="badge bg-success bg-opacity-25 text-success">{{ accounts[0].status }}</span>
+              {% else %}
+                <a href="/customer/apply-account" class="text-success fw-semibold">Apply for Account</a>
+              {% endif %}
+            </div>
+          </div>
+          <div class="metric-icon-box navy">
+            <i class="bi bi-credit-card-2-front"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card gold h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="metric-label">Loan Facilities</div>
+            <div class="metric-value my-1">{{ loans|length }}</div>
+            <div class="small text-muted">
+              {% if loans %}
+                {{ loans[0].category }} &bull; {{ loans[0].status }}
+              {% else %}
+                Zero outstanding borrowings
+              {% endif %}
+            </div>
+          </div>
+          <div class="metric-icon-box gold">
+            <i class="bi bi-piggy-bank"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounts & Quick Actions -->
+  <div class="row g-4 mb-4">
+    <!-- Accounts Grid -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <span class="fw-bold text-dark"><i class="bi bi-wallet2 text-emerald me-2"></i> Your Bank Accounts</span>
+          <a href="/customer/accounts" class="btn btn-sm btn-link text-decoration-none">View All &raquo;</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-smartbank table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Account Number</th>
+                  <th>Type</th>
+                  <th>Available Balance</th>
+                  <th>Status</th>
+                  <th class="text-end">Statement</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for acc in accounts %}
+                  <tr>
+                    <td class="font-monospace fw-bold text-dark">{{ acc.account_number }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ acc.account_type }}</span></td>
+                    <td class="fw-bold text-success">{{ cents_to_currency(acc.balance_cents) }}</td>
+                    <td>
+                      <span class="badge {% if acc.status == 'ACTIVE' %}bg-success{% elif acc.status == 'FROZEN' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                        {{ acc.status }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <a href="/reports/statement?account_number={{ acc.account_number }}" class="btn btn-outline-primary btn-sm py-1 px-2" title="View Statement">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Statement
+                      </a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                      No active bank accounts found. <a href="/customer/apply-account" class="text-emerald fw-semibold">Submit a KYC Application</a>.
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Shortcuts Card -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3">
+          <span class="fw-bold text-dark"><i class="bi bi-lightning-charge text-warning me-2"></i> Quick Banking Actions</span>
+        </div>
+        <div class="card-body d-flex flex-column gap-2 justify-content-center p-3">
+          <a href="/customer/apply-account" class="btn btn-light border text-start py-2 px-3 d-flex align-items-center gap-3">
+            <i class="bi bi-camera-video-fill text-success fs-5"></i>
+            <div>
+              <div class="fw-semibold text-dark">Open Account (Video KYC)</div>
+              <div class="small text-muted" style="font-size: 0.75rem;">Paperless upload & live video verification</div>
+            </div>
+          </a>
+          <a href="/customer/transfer" class="btn btn-light border text-start py-2 px-3 d-flex align-items-center gap-3">
+            <i class="bi bi-send text-primary fs-5"></i>
+            <div>
+              <div class="fw-semibold text-dark">Transfer Money</div>
+              <div class="small text-muted" style="font-size: 0.75rem;">Instant NEFT / IMPS transfers</div>
+            </div>
+          </a>
+          <a href="/customer/deposit" class="btn btn-light border text-start py-2 px-3 d-flex align-items-center gap-3">
+            <i class="bi bi-box-arrow-in-down text-success fs-5"></i>
+            <div>
+              <div class="fw-semibold text-dark">Deposit Cash</div>
+              <div class="small text-muted" style="font-size: 0.75rem;">Instant credit to INR account</div>
+            </div>
+          </a>
+          <a href="/customer/withdraw" class="btn btn-light border text-start py-2 px-3 d-flex align-items-center gap-3">
+            <i class="bi bi-box-arrow-up text-danger fs-5"></i>
+            <div>
+              <div class="fw-semibold text-dark">Withdraw Funds</div>
+              <div class="small text-muted" style="font-size: 0.75rem;">Secure debit from active balance</div>
+            </div>
+          </a>
+          <a href="/customer/loans" class="btn btn-light border text-start py-2 px-3 d-flex align-items-center gap-3">
+            <i class="bi bi-piggy-bank text-warning fs-5"></i>
+            <div>
+              <div class="fw-semibold text-dark">Apply for Loan</div>
+              <div class="small text-muted" style="font-size: 0.75rem;">Home, Vehicle, Education, Personal</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Table -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <span class="fw-bold text-dark"><i class="bi bi-clock-history text-primary me-2"></i> Recent Account Activity</span>
+      <a href="/customer/transactions" class="btn btn-sm btn-link text-decoration-none">Full Statement &raquo;</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-smartbank table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Reference</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount (INR)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in recent_transactions %}
+              <tr>
+                <td class="small text-muted">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="font-monospace small fw-bold">{{ t.transaction_reference }}</td>
+                <td>
+                  <span class="badge {% if t.transaction_type == 'DEPOSIT' %}bg-success{% elif t.transaction_type == 'WITHDRAWAL' %}bg-danger{% else %}bg-primary{% endif %}">
+                    {{ t.transaction_type }}
+                  </span>
+                </td>
+                <td class="small">{{ t.description }}</td>
+                <td class="fw-bold {% if t.transaction_type == 'DEPOSIT' %}text-success{% else %}text-dark{% endif %}">
+                  {{ cents_to_currency(t.amount_cents) }}
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ t.status }}</span></td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">No transactions recorded on your accounts yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
